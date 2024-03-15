@@ -21,7 +21,13 @@ void PathRecorder::Record()
                                                  100,
                                                  &PathRecorder::LiosamHandler, this,
                                                  ros::TransportHints().tcpNoDelay());
-
+                                                 
+    else if(algorithm_type_ == path_recorder::Algorithm::KISS_ICP)
+        sub_path = nh_.subscribe<nav_msgs::Path>(path_topic_,
+                                                 100,
+                                                 &PathRecorder::KissHandler, this,
+                                                 ros::TransportHints().tcpNoDelay());
+                                                 
     std::string bag_fn = save_to_ + "/" + algorithm_name_ + "_path.bag";
     bag.open(bag_fn, rosbag::bagmode::Write);
 
@@ -48,7 +54,22 @@ void PathRecorder::AloamHandler(const nav_msgs::Path::ConstPtr &path)
     path_rcvd_->poses = path->poses;
     updated_ = true;
 }
-
+void PathRecorder::LiosamHandler(const nav_msgs::Path::ConstPtr &path)
+{
+    std::unique_lock<std::mutex> lock(path_mtx_);
+    path_rcvd_->header.seq = path->header.seq;
+    path_rcvd_->header.frame_id = "/map";
+    path_rcvd_->poses = path->poses;
+    updated_ = true;
+}
+void PathRecorder::KissHandler(const nav_msgs::Path::ConstPtr &path)
+{
+    std::unique_lock<std::mutex> lock(path_mtx_);
+    path_rcvd_->header.seq = path->header.seq;
+    path_rcvd_->header.frame_id = "/map";
+    path_rcvd_->poses = path->poses;
+    updated_ = true;
+}
 void PathRecorder::LegoloamHandler(const nav_msgs::Odometry::ConstPtr &odom)
 {
     std::unique_lock<std::mutex> lock(path_mtx_);
@@ -72,12 +93,4 @@ void PathRecorder::LegoloamHandler(const nav_msgs::Odometry::ConstPtr &odom)
     updated_ = true;
 }
 
-void PathRecorder::LiosamHandler(const nav_msgs::Path::ConstPtr &path)
-{
-    std::unique_lock<std::mutex> lock(path_mtx_);
-    path_rcvd_->header.seq = path->header.seq;
-    path_rcvd_->header.frame_id = "/map";
 
-    path_rcvd_->poses = path->poses;
-    updated_ = true;
-}

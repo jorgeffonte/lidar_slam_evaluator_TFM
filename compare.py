@@ -1,3 +1,6 @@
+
+# python compare.py --slam lego_loam lio_sam aloam kiss_icp --bag_path /home/dronomy/TFM_ws/kitti_data/odom/dataset/sequences/07/compare_ros/kitti_2011_09_30_drive_0027_synced --plot all --no_play
+
 import argparse
 import time
 import yaml
@@ -10,7 +13,8 @@ import src.error as error
 
 packages_list = {'aloam': 'record_aloam.launch', 
                  'lego_loam': 'record_lego_loam.launch',
-                 'lio_sam': 'record_lio_sam.launch',}
+                 'lio_sam': 'record_lio_sam.launch',
+                 'kiss_icp': 'record_kiss_icp.launch',}
 
 parser = argparse.ArgumentParser(description="Lidar SLAM Evaluator")
 parser.add_argument('--slam', nargs="+", dest='slam_packages', help='SLAM algorithms that want to compare: aloam, lego_loam, lio_sam')
@@ -21,10 +25,10 @@ args = parser.parse_args()
 
 if args.slam_packages is None:
 	print("No specified SLAM Lists. Run default algorithms: ALOAM, LEGO_LOAM, LIO_SAM")
-	args.slam_packages = ["aloam", "lego_loam", "lio_sam"]
+	args.slam_packages = ["aloam", "lego_loam", "lio_sam", "kiss_icp"]
 
 if 'all' in args.slam_packages:
-    args.slam_packages = ["aloam", "lego_loam", "lio_sam"]
+    args.slam_packages = ["aloam", "lego_loam", "lio_sam", "kiss_icp"]
 
 for slam in args.slam_packages:
     if slam not in packages_list:
@@ -38,7 +42,7 @@ class CompareSLAM():
         self.slam_packages = slam_packages
         self.bag_path = bag_path
         self.bag_file = bag_path + '/kitti.bag'
-        bag_info_dict = yaml.load(Bag(self.bag_file, 'r')._get_yaml_info())
+        bag_info_dict = yaml.safe_load(Bag(self.bag_file, 'r')._get_yaml_info())
         self.bag_duration = bag_info_dict['duration']
         self.plot_arg = plot_arg
         self.file_list = []

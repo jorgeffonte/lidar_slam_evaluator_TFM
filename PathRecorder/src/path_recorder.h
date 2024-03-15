@@ -32,6 +32,7 @@ private:
     void AloamHandler(const nav_msgs::Path::ConstPtr &path);
     void LegoloamHandler(const nav_msgs::Odometry::ConstPtr &odom);
     void LiosamHandler(const nav_msgs::Path::ConstPtr &path);
+    void KissHandler(const nav_msgs::Path::ConstPtr &path);
     ros::NodeHandle nh_ = ros::NodeHandle("~");
     nav_msgs::PathPtr path_rcvd_;
     std::string algorithm_name_;

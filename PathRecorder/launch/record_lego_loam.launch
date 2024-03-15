@@ -1,6 +1,6 @@
 <launch>
     <!-- Set use_sim_time true to generate trajectory bag file in same time domain -->
-    <param name="/use_sim_time" value="true" />
+    <param name="/use_sim_time" value="true"/>
     
     <!-- Path of a rosbag file -->
     <arg name="bag_path" default="$(find path_recorder)/../bag/kitti_2011_09_30_drive_0027_synced"/>

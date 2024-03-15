@@ -36,4 +36,3 @@
         <param name="save_to" type="string" value="$(arg bag_path)" />
     </node>
 </launch>
-
