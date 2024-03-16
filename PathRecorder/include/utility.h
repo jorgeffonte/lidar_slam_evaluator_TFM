@@ -12,7 +12,9 @@ namespace path_recorder
         A_LOAM,
         LeGO_LOAM,
         LIO_SAM,
-        KISS_ICP
+        KISS_ICP,
+        DLO,
+        F_LOAM
     };
 
     inline Algorithm GetAlgorithmType(std::string algorithm_name)
@@ -25,6 +27,10 @@ namespace path_recorder
             return Algorithm::LIO_SAM;
         else if (algorithm_name == "kiss_icp")
             return Algorithm::KISS_ICP;
+        else if (algorithm_name == "dlo")
+            return Algorithm::DLO;
+        else if (algorithm_name == "f_loam")
+            return Algorithm::F_LOAM;    
         else
             std::cerr << "Unsupported algorithm type." << std::endl;
     }

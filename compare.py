@@ -14,7 +14,9 @@ import src.error as error
 packages_list = {'aloam': 'record_aloam.launch', 
                  'lego_loam': 'record_lego_loam.launch',
                  'lio_sam': 'record_lio_sam.launch',
-                 'kiss_icp': 'record_kiss_icp.launch',}
+                 'kiss_icp': 'record_kiss_icp.launch',
+                 'dlo': 'record_dlo.launch',
+                 'f_loam': 'record_f_loam.launch',}
 
 parser = argparse.ArgumentParser(description="Lidar SLAM Evaluator")
 parser.add_argument('--slam', nargs="+", dest='slam_packages', help='SLAM algorithms that want to compare: aloam, lego_loam, lio_sam')

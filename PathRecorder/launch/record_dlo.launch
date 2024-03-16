@@ -1,0 +1,70 @@
+<launch>
+    <!-- Set use_sim_time true to generate trajectory bag file in same time domain -->
+    <param name="/use_sim_time" value="true"/>
+
+    <!-- Path of a rosbag file -->
+    <arg name="bag_path" default="$(find path_recorder)/../bag/kitti_2011_09_30_drive_0027_synced"/>
+    <!-- ROS paramaters -->
+
+
+    <!-- DLO params -->
+    <arg name="robot_namespace" default="robot"/>
+    <arg name="rviz" default="true"/>
+
+    <arg name="pointcloud_topic" default="/velodyne_points"/>
+    <arg name="imu_topic" default="imu"/>
+
+    <!-- Run DLO -->
+    <group>
+        <!-- DLO Odometry Node -->
+        <node ns="$(arg robot_namespace)" name="dlo_odom" pkg="direct_lidar_odometry" type="dlo_odom_node" output="screen" clear_params="true">
+
+            <!-- Load parameters -->
+            <rosparam file="$(find direct_lidar_odometry)/cfg/dlo.yaml" command="load"/>
+            <rosparam file="$(find direct_lidar_odometry)/cfg/params.yaml" command="load"/>
+
+            <!-- Subscriptions -->
+            <remap from="~pointcloud" to="$(arg pointcloud_topic)"/>
+            <remap from="~imu" to="$(arg imu_topic)"/>
+
+            <!-- Publications -->
+            <remap from="~odom" to="dlo/odom_node/odom"/>
+            <remap from="~pose" to="dlo/odom_node/pose"/>
+            <remap from="~kfs" to="dlo/odom_node/odom/keyframe"/>
+            <remap from="~keyframe" to="dlo/odom_node/pointcloud/keyframe"/>
+
+        </node>
+        <!-- DLO Mapping Node -->
+        <node ns="$(arg robot_namespace)" name="dlo_map" pkg="direct_lidar_odometry" type="dlo_map_node" output="screen" clear_params="true">
+
+            <!-- Load parameters -->
+            <rosparam file="$(find direct_lidar_odometry)/cfg/dlo.yaml" command="load"/>
+
+            <!-- Subscriptions -->
+            <remap from="~keyframes" to="dlo/odom_node/pointcloud/keyframe"/>
+
+            <!-- Publications -->
+            <remap from="~map" to="dlo/map_node/map"/>
+
+        </node>
+        <node pkg="direct_lidar_odometry" name="path_dlo" type="path_pub.py" output="screen"/>
+
+        <group if="$(arg rviz)">
+            <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find direct_lidar_odometry)/launch/dlo.rviz"/>
+            <!-- <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find aloam_velodyne)/rviz_cfg/aloam_velodyne.rviz" /> -->
+        </group>
+    </group>
+
+
+	<!-- Remap point cloud topic -->
+	<remap from="points_raw" to="velodyne_points" />
+	<!-- Play kitti rosbag file -->
+    <node pkg="rosbag" type="play" name="kitti" args="--clock $(arg bag_path)/kitti.bag" output="log" />
+
+	<!-- Launch path_recorder to save a trajectory from KISS-ICP -->
+    <node pkg="path_recorder" type="path_recorder" name="kiss_recorder" output="screen">
+        <param name="algorithm_name" type="string" value="dlo" />
+        <param name="path_topic" type="string" value="/dlo/path" />
+        <param name="save_to" type="string" value="$(arg bag_path)" />
+    </node>
+</launch>

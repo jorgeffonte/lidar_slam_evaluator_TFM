@@ -27,7 +27,20 @@ void PathRecorder::Record()
                                                  100,
                                                  &PathRecorder::KissHandler, this,
                                                  ros::TransportHints().tcpNoDelay());
+
+    else if(algorithm_type_ == path_recorder::Algorithm::DLO)
+        sub_path = nh_.subscribe<nav_msgs::Path>(path_topic_,
+                                                 100,
+                                                 &PathRecorder::DloHandler, this,
+                                                 ros::TransportHints().tcpNoDelay());
                                                  
+    
+    else if(algorithm_type_ == path_recorder::Algorithm::F_LOAM)
+        sub_path = nh_.subscribe<nav_msgs::Path>(path_topic_,
+                                                 100,
+                                                 &PathRecorder::FloamHandler, this,
+                                                 ros::TransportHints().tcpNoDelay());
+                                                                                              
     std::string bag_fn = save_to_ + "/" + algorithm_name_ + "_path.bag";
     bag.open(bag_fn, rosbag::bagmode::Write);
 
@@ -63,6 +76,23 @@ void PathRecorder::LiosamHandler(const nav_msgs::Path::ConstPtr &path)
     updated_ = true;
 }
 void PathRecorder::KissHandler(const nav_msgs::Path::ConstPtr &path)
+{
+    std::unique_lock<std::mutex> lock(path_mtx_);
+    path_rcvd_->header.seq = path->header.seq;
+    path_rcvd_->header.frame_id = "/map";
+    path_rcvd_->poses = path->poses;
+    updated_ = true;
+}
+void PathRecorder::FloamHandler(const nav_msgs::Path::ConstPtr &path)
+{
+    std::unique_lock<std::mutex> lock(path_mtx_);
+    path_rcvd_->header.seq = path->header.seq;
+    path_rcvd_->header.frame_id = "/map";
+    path_rcvd_->poses = path->poses;
+    updated_ = true;
+}
+
+void PathRecorder::DloHandler(const nav_msgs::Path::ConstPtr &path)
 {
     std::unique_lock<std::mutex> lock(path_mtx_);
     path_rcvd_->header.seq = path->header.seq;
