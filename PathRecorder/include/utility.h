@@ -14,7 +14,9 @@ namespace path_recorder
         LIO_SAM,
         KISS_ICP,
         DLO,
-        F_LOAM
+        F_LOAM,
+        FASTER_LIO,
+        FAST_LIO
     };
 
     inline Algorithm GetAlgorithmType(std::string algorithm_name)
@@ -31,6 +33,10 @@ namespace path_recorder
             return Algorithm::DLO;
         else if (algorithm_name == "f_loam")
             return Algorithm::F_LOAM;    
+        else if (algorithm_name == "faster_lio")
+            return Algorithm::FASTER_LIO;    
+        else if (algorithm_name == "fast_lio")
+            return Algorithm::FAST_LIO;  
         else
             std::cerr << "Unsupported algorithm type." << std::endl;
     }

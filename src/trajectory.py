@@ -36,7 +36,7 @@ class Trajectory:
         self.length = length
 
         self.is_gt = False
-        if self.name == 'gt' or self.name == 'ground_truth' or self.name == '/ground_truth': self.is_gt = True
+        if self.name == '/ground_truth_path' or self.name == 'gt' or self.name == 'ground_truth' or self.name == '/ground_truth': self.is_gt = True
         print("{} with length {}".format(self.name, self.length))
 
     def _read_bag(self, bag):

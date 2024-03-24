@@ -3,7 +3,7 @@
     <param name="/use_sim_time" value="true"/>
 
     <!-- Path of a rosbag file -->
-    <arg name="bag_path" default="$(find path_recorder)/../bag/kitti_2011_09_30_drive_0027_synced"/>
+    <arg name="bag_path" default="$(find path_recorder)/../bag/nclt_2011_09_30_drive_0027_synced"/>
    <!-- For Velodyne VLP-16 -->
    <param name="scan_line" value="16" />
     
@@ -24,7 +24,7 @@
     <param name="vertical_angle" type="double" value="2.0" />
     <param name="map_resolution" type="double" value="0.2" />
     <param name="max_dis" type="double" value="90.0" />
-    <param name="min_dis" type="double" value="3.0" />
+    <param name="min_dis" type="double" value="4" />
     <!--- -->
     <node pkg="floam" type="floam_odom_estimation_node" name="floam_odom_estimation_node" output="screen"/>
     <node pkg="floam" type="floam_laser_processing_node" name="floam_laser_processing_node" output="screen"/>
@@ -48,8 +48,8 @@
 
 	<!-- Remap point cloud topic -->
 	<remap from="points_raw" to="velodyne_points" />
-	<!-- Play kitti rosbag file -->
-    <node pkg="rosbag" type="play" name="kitti" args="--clock $(arg bag_path)/kitti.bag" output="log" />
+	<!-- Play nclt rosbag file -->
+    <node pkg="rosbag" type="play" name="nclt" args="--clock $(arg bag_path)/nclt.bag  -u 100" output="log" />
 
 	<!-- Launch path_recorder to save a trajectory from KISS-ICP -->
     <node pkg="path_recorder" type="path_recorder" name="kiss_recorder" output="screen">

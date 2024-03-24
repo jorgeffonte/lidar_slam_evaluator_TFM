@@ -11,20 +11,28 @@ import matplotlib.pyplot as plt
 import src.trajectory as tj
 import src.error as error
 
-packages_list = {'aloam': 'record_aloam.launch', 
-                 'lego_loam': 'record_lego_loam.launch',
-                 'lio_sam': 'record_lio_sam.launch',
-                 'kiss_icp': 'record_kiss_icp.launch',
-                 'dlo': 'record_dlo.launch',
-                 'f_loam': 'record_f_loam.launch',}
+packages_list = {
+    'aloam': ['record_aloam.launch', 'record_aloam_nclt.launch'],
+    'lego_loam': ['record_lego_loam.launch', 'record_lego_loam_nclt.launch'],
+    'lio_sam': ['record_lio_sam.launch', 'record_lio_sam_nclt.launch'],
+    'kiss_icp': ['record_kiss_icp.launch', 'record_kiss_icp_nclt.launch'],
+    'dlo': ['record_dlo.launch', 'record_dlo_nclt.launch'],
+    'f_loam': ['record_f_loam.launch', 'record_f_loam_nclt.launch'],
+    'faster_lio': ['record_faster_lio.launch', 'record_faster_lio_nclt.launch'],
+    'fast_lio': ['record_fast_lio.launch', 'record_fast_lio_nclt.launch']
+}
 
 parser = argparse.ArgumentParser(description="Lidar SLAM Evaluator")
+parser.add_argument('--dataset', nargs="+", dest='dataset', help='SLAM algorithms that want to compare: kitti, nclt')
 parser.add_argument('--slam', nargs="+", dest='slam_packages', help='SLAM algorithms that want to compare: aloam, lego_loam, lio_sam')
 parser.add_argument('--bag_path', dest='bagfile_path', help='Directory path where KITTI dataset bag file "kitti.bag" exists')
 parser.add_argument('--plot', dest='plot_arg', choices=['all', 'traj', 'error', 'stat'], default='all', help='Plot options: all, traj, error, stat')
 parser.add_argument('--no_play', dest='play_flag', action='store_false', help='If you already have recorded result bag file, add --no_play')
 args = parser.parse_args()
 
+if args.dataset is None:
+    print("No dataset specified. Using KITTI dataset by default.")
+    args.dataset = ["kitti"]
 if args.slam_packages is None:
 	print("No specified SLAM Lists. Run default algorithms: ALOAM, LEGO_LOAM, LIO_SAM")
 	args.slam_packages = ["aloam", "lego_loam", "lio_sam", "kiss_icp"]
@@ -43,12 +51,15 @@ class CompareSLAM():
     def __init__(self, slam_packages, bag_path, plot_arg):
         self.slam_packages = slam_packages
         self.bag_path = bag_path
-        self.bag_file = bag_path + '/kitti.bag'
+        if 'nclt' in args.dataset: self.bag_file = bag_path + '/nclt.bag'
+        else: self.bag_file = bag_path + '/kitti.bag'
         bag_info_dict = yaml.safe_load(Bag(self.bag_file, 'r')._get_yaml_info())
         self.bag_duration = bag_info_dict['duration']
         self.plot_arg = plot_arg
         self.file_list = []
-        self.file_list.append(bag_path + '/kitti_gt.bag')
+        print(args.dataset)
+        if 'nclt' in args.dataset: self.file_list.append(bag_path + '/nclt_gt.bag')
+        else: self.file_list.append(bag_path + '/kitti_gt.bag')
         for slam in self.slam_packages:
             self.file_list.append(self.bag_path +'/'+ slam + '_path.bag')
         
@@ -57,7 +68,10 @@ class CompareSLAM():
             print("%s algorithm is running ..." % slam)
             print("bag file duration: %i" % self.bag_duration)
             print(self.bag_file)
-            p1 = Popen(["roslaunch", "path_recorder", packages_list[slam], "bag_path:=" + self.bag_path])
+            index = 0 
+            if 'nclt' in args.dataset: index = 1
+            print("index= "+str(index))
+            p1 = Popen(["roslaunch", "path_recorder", packages_list[slam][index], "bag_path:=" + self.bag_path])
             
             start_time = time.time()
             currnet_time = start_time

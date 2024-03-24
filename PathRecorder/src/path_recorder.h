@@ -35,6 +35,8 @@ private:
     void KissHandler(const nav_msgs::Path::ConstPtr &path);
     void DloHandler(const nav_msgs::Path::ConstPtr &path);
     void FloamHandler(const nav_msgs::Path::ConstPtr &path);
+    void FasterLioHandler(const nav_msgs::Path::ConstPtr &path);
+    void FastLioHandler(const nav_msgs::Path::ConstPtr &path);
     ros::NodeHandle nh_ = ros::NodeHandle("~");
     nav_msgs::PathPtr path_rcvd_;
     std::string algorithm_name_;
