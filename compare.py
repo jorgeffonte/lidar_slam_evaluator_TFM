@@ -51,15 +51,13 @@ class CompareSLAM():
     def __init__(self, slam_packages, bag_path, plot_arg):
         self.slam_packages = slam_packages
         self.bag_path = bag_path
-        if 'nclt' in args.dataset: self.bag_file = bag_path + '/nclt.bag'
-        else: self.bag_file = bag_path + '/kitti.bag'
+        self.bag_file = bag_path + '/'+args.dataset[0]+'.bag'
         bag_info_dict = yaml.safe_load(Bag(self.bag_file, 'r')._get_yaml_info())
         self.bag_duration = bag_info_dict['duration']
         self.plot_arg = plot_arg
         self.file_list = []
         print(args.dataset)
-        if 'nclt' in args.dataset: self.file_list.append(bag_path + '/nclt_gt.bag')
-        else: self.file_list.append(bag_path + '/kitti_gt.bag')
+        self.file_list.append(bag_path + '/'+args.dataset[0]+'_gt.bag')
         for slam in self.slam_packages:
             self.file_list.append(self.bag_path +'/'+ slam + '_path.bag')
         
@@ -68,10 +66,7 @@ class CompareSLAM():
             print("%s algorithm is running ..." % slam)
             print("bag file duration: %i" % self.bag_duration)
             print(self.bag_file)
-            index = 0 
-            if 'nclt' in args.dataset: index = 1
-            print("index= "+str(index))
-            p1 = Popen(["roslaunch", "path_recorder", packages_list[slam][index], "bag_path:=" + self.bag_path])
+            p1 = Popen(["roslaunch", "path_recorder", 'record_'+slam+'_'+args.dataset[0]+'.launch', "bag_path:=" + self.bag_path])
             
             start_time = time.time()
             currnet_time = start_time
