@@ -122,7 +122,15 @@ class Error:
             E = np.dot(np.linalg.inv(Q), P)
 
             rpe_trans.append(np.linalg.norm(E[:3, 3]))
-            rpe_rot.append(np.arccos((np.trace(E[:3, :3]) - 1) / 2))
+            cos_angle = (np.trace(E[:3, :3]) - 1) / 2
+            
+                
+
+            cos_angle_clamped = np.clip(cos_angle, -1, 1)
+            rpe_rot.append(np.arccos(cos_angle_clamped))
+            if (abs(cos_angle)>1):
+                print("i= "+str(i) +" cosangle= "+str(cos_angle)+" clamped angle= "+str(cos_angle_clamped))
+            # rpe_rot.append(np.arccos((np.trace(E[:3, :3]) - 1) / 2))
         ''' direct comparison (no conversion to pose matrix)
         for i in range(gt.length-delta):
             translation_error = np.linalg.norm((test.trajectory[i+delta]-test.trajectory[i]) - (gt.trajectory[i+delta] - gt.trajectory[i]))
