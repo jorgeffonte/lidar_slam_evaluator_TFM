@@ -61,13 +61,22 @@ if __name__ == "__main__":
                             [-1, 0, 0, 0],
                             [0, -1, 0, 0],
                             [0, 0, 0, 1]])
+    R = np.array([
+        [7.027555e-03, -9.999753e-01, 2.599616e-05],
+        [-2.254837e-03, -4.184312e-05, -9.999975e-01],
+        [9.999728e-01, 7.027479e-03, -2.255075e-03]
+    ])
+    T = np.array([-7.137748e-03, -7.482656e-02, -3.336324e-01])
+    transform = np.eye(4)
+    transform[:3, :3] = R
+    transform[:3, 3] = T
     q_transform = quaternion_from_matrix(R_transform)
-    
+    transform=np.linalg.inv(transform)
     print('Conversion starts!')
     for i in tqdm(range(len(kitti_odom.timestamps))):
         q = quaternion_from_matrix(kitti_odom.poses[i])
         q = q / math.sqrt(q[0] ** 2 + q[1] ** 2 + q[2] ** 2 + q[3] ** 2)
-        t = R_transform[:3, :3].dot(kitti_odom.poses[i][:3, 3].reshape(3, 1))
+        t = transform[:3, :3].dot(kitti_odom.poses[i][:3, 3].reshape(3, 1))
         pose = PoseStamped()
         pose.header.frame_id = '/map'
         pose.header.stamp = rospy.Time.from_sec(float(kitti_raw.timestamps[i].strftime("%s.%f")))

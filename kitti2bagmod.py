@@ -164,16 +164,9 @@ def save_velo_data(bag, kitti, velo_frame_id, topic, scan_duration=0.1):
 
         # Convert the scan time to a float timestamp and add it as a constant column
         num_points = scan.shape[0]
-        time_offsets = np.linspace(0, scan_duration, num=int(num_points / 10), endpoint=True)
-        time_offsets = np.repeat(time_offsets, 10)
-        if len(time_offsets) > num_points:
-            time_offsets = time_offsets[:num_points]
-        elif len(time_offsets) < num_points:
-            # Extendiendo el último valor para completar
-            last_val = np.array([time_offsets[-1]] * (num_points - len(time_offsets)))
-            time_offsets = np.concatenate((time_offsets, last_val))
+        time_offsets = np.linspace(0, scan_duration, num=num_points, endpoint=False)
         scan_start_time = float(datetime.strftime(dt, "%s.%f"))      
-        point_times=  time_offsets * 1000000
+        point_times=  ( time_offsets)*1000000
         time_column = point_times.reshape(-1, 1)
 
 
