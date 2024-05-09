@@ -3,20 +3,20 @@
     <param name="/use_sim_time" value="true"/>
     
     <!-- Path of a rosbag file -->
-    <arg name="bag_path" default="$(find path_recorder)/../bag/kitti_2011_09_30_drive_0027_synced"/>
+    <arg name="bag_path" default="$(find path_recorder)/../bag/nclt_2011_09_30_drive_0027_synced"/>
     <!-- ROS paramaters -->
     <arg name="visualize" default="true"/>
     <arg name="odom_frame" default="odom"/>
-    <arg name="base_frame" default="velodyne"/>
-    <arg name="topic" default="/velodyne_points"/>
+    <arg name="base_frame" default="sensor1/os_sensor"/>
+    <arg name="topic" default="/os1_cloud_node1/points"/>
     <arg name="publish_odom_tf" default="true"/>
     <arg name="record" default="false"/>
 
     <!-- KISS-ICP paramaters -->
-    <arg name="deskew" default="false"/>
+    <arg name="deskew" default="true"/>
     <arg name="max_range" default="100.0" />
     <arg name="min_range" default="1.0" />
-    <arg name="voxel_size" default="" />
+    <arg name="voxel_size" default="0.5" />
     <!-- Odometry node -->
   
     <!-- Run KISS-ICP --> 
@@ -35,21 +35,23 @@
             <param name="voxel_size" value="$(arg voxel_size)"/>
             <param name="max_points_per_voxel" value="20"/>
             <param name="initial_threshold" value="2.0"/>
-            <param name="min_motion_th" value="0.1" />
+            <param name="min_motion_th" value="0.01" />
         </node>
         
         <arg name="rviz" default="true" />
         <group if="$(arg rviz)">
-            <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find kiss_icp)/rviz/kiss_icp_ros1.rviz"/>
+            <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find kiss_icp)/rviz/kiss_icp_ros1_ntu.rviz"/>
             <!-- <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find aloam_velodyne)/rviz_cfg/aloam_velodyne.rviz" /> -->
         </group>
+        <node pkg="tf2_ros" type="static_transform_publisher"
+          name="world_vio_init_pub" args="0 0 0 1 0 0 0 world odom" />  
+          <node pkg="tf2_ros" type="static_transform_publisher"
+          name="world_vio_init2" args="0 0 0 1 0 0 0 sensor1/os_sensor sensor1/os_sensor_up" />  
     </group>
 
 
-	<!-- Remap point cloud topic -->
-	<remap from="points_raw" to="velodyne_points" />
-	<!-- Play kitti rosbag file -->
-    <node pkg="rosbag" type="play" name="kitti" args="--clock $(arg bag_path)/kitti.bag" output="log" />
+	<!-- Play nclt rosbag file -->
+    <node pkg="rosbag" type="play" name="nclt" args="--clock $(arg bag_path)/ntu.bag " output="log" />
 
 	<!-- Launch path_recorder to save a trajectory from KISS-ICP -->	
     <node pkg="path_recorder" type="path_recorder" name="kiss_recorder" output="screen">
