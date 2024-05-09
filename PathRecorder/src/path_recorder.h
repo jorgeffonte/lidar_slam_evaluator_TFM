@@ -7,6 +7,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <nav_msgs/Path.h>
 #include <nav_msgs/Odometry.h>
+#include <std_msgs/Float64.h>
 #include <ros/ros.h>
 #include <rosbag/bag.h>
 #include <tf/tf.h>
@@ -29,6 +30,7 @@ public:
     void Record();
 
 private:
+    void CompHandler(const std_msgs::Float64 msg);
     void AloamHandler(const nav_msgs::Path::ConstPtr &path);
     void LegoloamHandler(const nav_msgs::Odometry::ConstPtr &odom);
     void LiosamHandler(const nav_msgs::Path::ConstPtr &path);
@@ -39,9 +41,11 @@ private:
     void FastLioHandler(const nav_msgs::Path::ConstPtr &path);
     ros::NodeHandle nh_ = ros::NodeHandle("~");
     nav_msgs::PathPtr path_rcvd_;
+    std_msgs::Float64 time_comp_rcvd_;
     std::string algorithm_name_;
     path_recorder::Algorithm algorithm_type_;
     std::string path_topic_;
+    std::string comp_topic_="/comp_time";
     std::string save_to_;
 
     bool updated_ = false;

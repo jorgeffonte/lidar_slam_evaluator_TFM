@@ -4,8 +4,8 @@ void PathRecorder::Record()
 {
     boost::filesystem::create_directory(save_to_);
 
-    rosbag::Bag bag;
-    ros::Subscriber sub_path;
+    rosbag::Bag bag,bag_time;
+    ros::Subscriber sub_path,sub_comp;
     if (algorithm_type_ == path_recorder::Algorithm::A_LOAM)
         sub_path = nh_.subscribe<nav_msgs::Path>(path_topic_,
                                                  100,
@@ -33,6 +33,7 @@ void PathRecorder::Record()
                                                  100,
                                                  &PathRecorder::DloHandler, this,
                                                  ros::TransportHints().tcpNoDelay());
+                                              
                                                  
     
     else if(algorithm_type_ == path_recorder::Algorithm::F_LOAM)
@@ -51,14 +52,22 @@ void PathRecorder::Record()
                                                  100,
                                                  &PathRecorder::FastLioHandler, this,
                                                  ros::TransportHints().tcpNoDelay());                                                                                          
+    sub_comp = nh_.subscribe<std_msgs::Float64>(comp_topic_,
+                                                 100,
+                                                 &PathRecorder::CompHandler, this,
+                                                 ros::TransportHints().tcpNoDelay());   
     std::string bag_fn = save_to_ + "/" + algorithm_name_ + "_path.bag";
+    std::string bag_time_fn = save_to_ + "/" + algorithm_name_ + "_time.bag";
+
     bag.open(bag_fn, rosbag::bagmode::Write);
+    bag_time.open(bag_time_fn, rosbag::bagmode::Write);
 
     while (ros::ok())
     {
         if (updated_)
         {
             std::unique_lock<std::mutex> lock(path_mtx_);
+            bag_time.write(comp_topic_, ros::Time::now(), time_comp_rcvd_);
             bag.write(algorithm_name_ + "_path", ros::Time::now(), path_rcvd_);
             updated_ = false;
         }
@@ -69,6 +78,10 @@ void PathRecorder::Record()
     std::cout << "Recorded path bag file is saved in: " << bag_fn  << std::endl;
 }
 
+void PathRecorder::CompHandler(const std_msgs::Float64 msg)
+{
+    time_comp_rcvd_.data=msg.data;
+}
 void PathRecorder::AloamHandler(const nav_msgs::Path::ConstPtr &path)
 {
     std::unique_lock<std::mutex> lock(path_mtx_);
