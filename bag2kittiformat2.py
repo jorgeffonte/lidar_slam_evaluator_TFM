@@ -35,9 +35,9 @@ def count_lines(filename):
 
 
 def process_bag_file(seq):
-    bag_file = f"/home/dronomy/TFM_ws/kitti_data/odom/dataset/sequences/0{str(seq)}/kiss_icp_path.bag"
-    out_path=f'/home/dronomy/TFM_ws/kitti_data/odom/dataset/results/sha/data/0{str(seq)}.txt'
-    gt_path=f'/home/dronomy/TFM_ws/kitti_data/odom/dataset/poses/0{str(seq)}.txt'
+    bag_file = f"/home/dronomy/TFM_ws/kitti_data/odom/dataset/sequences/{str(seq).zfill(2)}/kiss_icp_path.bag"
+    out_path=f'/home/dronomy/TFM_ws/kitti_data/odom/dataset/results/sha/data/{str(seq).zfill(2)}.txt'
+    gt_path=f'/home/dronomy/TFM_ws/kitti_data/odom/dataset/poses/{str(seq).zfill(2)}.txt'
     number_of_lines = count_lines(gt_path)
     """Process a ROS bag file to extract path transformations and save in KITTI format."""
     laser_to_camera_transform = create_laser_to_camera_transform()
@@ -73,12 +73,12 @@ def process_bag_file(seq):
     bag.close()
 
 # Use the function
-
-process_bag_file(1)
-process_bag_file(2)
-process_bag_file(4)
-process_bag_file(5)
-process_bag_file(6)
-process_bag_file(7)
-process_bag_file(9)
+process_bag_file(8)
+# process_bag_file(1)
+# process_bag_file(2)
+# process_bag_file(4)
+# process_bag_file(5)
+# process_bag_file(6)
+# process_bag_file(7)
+# process_bag_file(9)
 
