@@ -49,7 +49,9 @@ class Error:
             for j in range(test.length - 1):
                 if test.time[j] < time < test.time[j + 1]:
                     alpha = (time - test.time[j]) / (test.time[j + 1] - test.time[j])
+                    # Interpolate orientation using SLERP
                     orientation.append(SLERP(test.orientation[j], test.orientation[j + 1], alpha))
+                    # Interpolate trajectory using linear interpolation
                     trajectory.append((1 - alpha) * test.trajectory[j] + alpha * test.trajectory[j + 1])
                     dur.append(time)
                     index.append(i)
