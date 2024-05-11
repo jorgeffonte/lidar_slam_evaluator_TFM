@@ -100,7 +100,7 @@ def save_imu_data_raw(bag, kitti, imu_frame_id, topic):
             imu_data[i] = line_list
 
     assert len(imu_datetimes) == len(imu_data)
-    
+
     for timestamp, data in tqdm(zip(imu_datetimes, imu_data)):
         roll, pitch, yaw = float(data[3]), float(data[4]), float(data[5]), 
         q = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
@@ -136,7 +136,8 @@ def save_velo_data(bag, kitti, velo_frame_id, topic, scan_duration=0.1):
                 continue
             dt = datetime.strptime(line[:-4], '%Y-%m-%d %H:%M:%S.%f')
             velo_datetimes.append(dt)
-
+    velo_datetimes = velo_datetimes[start_frame:end_frame]
+    velo_filenames = velo_filenames[start_frame:end_frame]
     iterable = zip(velo_datetimes, velo_filenames)
 
     count = 0
@@ -220,7 +221,9 @@ def inv(transform):
 
 
 def save_gps_fix_data(bag, kitti, gps_frame_id, topic):
-    for timestamp, oxts in zip(kitti.timestamps, kitti.oxts):
+    timestamps = kitti.timestamps[start_frame:end_frame]
+    oxts = kitti.oxts[start_frame:end_frame]
+    for timestamp, oxts in zip(timestamps, oxts):
         navsatfix_msg = NavSatFix()
         navsatfix_msg.header.frame_id = gps_frame_id
         navsatfix_msg.header.stamp = rospy.Time.from_sec(float(timestamp.strftime("%s.%f")))
@@ -232,7 +235,9 @@ def save_gps_fix_data(bag, kitti, gps_frame_id, topic):
 
 
 def save_gps_vel_data(bag, kitti, gps_frame_id, topic):
-    for timestamp, oxts in zip(kitti.timestamps, kitti.oxts):
+    timestamps = kitti.timestamps[start_frame:end_frame]
+    oxts = kitti.oxts[start_frame:end_frame]
+    for timestamp, oxts in zip(timestamps, oxts):
         twist_msg = TwistStamped()
         twist_msg.header.frame_id = gps_frame_id
         twist_msg.header.stamp = rospy.Time.from_sec(float(timestamp.strftime("%s.%f")))
@@ -247,17 +252,17 @@ def save_gps_vel_data(bag, kitti, gps_frame_id, topic):
 
 if __name__ == "__main__":
     seq_to_drive = {
-        '00': '2011_10_03_drive_0027',
-        '01': '2011_10_03_drive_0042',
-        '02': '2011_10_03_drive_0034',
-        '03': '2011_09_26_drive_0067',
-        '04': '2011_09_30_drive_0016',
-        '05': '2011_09_30_drive_0018',
-        '06': '2011_09_30_drive_0020',
-        '07': '2011_09_30_drive_0027',
-        '08': '2011_09_30_drive_0028',
-        '09': '2011_09_30_drive_0033',
-        '10': '2011_09_30_drive_0034'
+        '00': {'date': '2011_10_03_drive_0027', 'start': '000000', 'end': '004540'},
+        '01': {'date': '2011_10_03_drive_0042', 'start': '000000', 'end': '001100'},
+        '02': {'date': '2011_10_03_drive_0034', 'start': '000000', 'end': '004660'},
+        '03': {'date': '2011_09_26_drive_0067', 'start': '000000', 'end': '000800'},
+        '04': {'date': '2011_09_30_drive_0016', 'start': '000000', 'end': '000270'},
+        '05': {'date': '2011_09_30_drive_0018', 'start': '000000', 'end': '002760'},
+        '06': {'date': '2011_09_30_drive_0020', 'start': '000000', 'end': '001100'},
+        '07': {'date': '2011_09_30_drive_0027', 'start': '000000', 'end': '001100'},
+        '08': {'date': '2011_09_30_drive_0028', 'start': '001100', 'end': '005170'},
+        '09': {'date': '2011_09_30_drive_0033', 'start': '000000', 'end': '001590'},
+        '10': {'date': '2011_09_30_drive_0034', 'start': '000000', 'end': '001200'}
     }
 
     parser = argparse.ArgumentParser(description = "Convert KITTI dataset to ROS bag file the easy way!")
@@ -266,13 +271,17 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--sequence", help="sequence number", default="07")
     args = parser.parse_args()
 
-    date = seq_to_drive[args.sequence][:-11]
-    drive = seq_to_drive[args.sequence][17:]
+    date = seq_to_drive[args.sequence]['date'][:-11]
+    drive = seq_to_drive[args.sequence]['date'][17:]
     kitti_raw = pykitti.raw(args.kitti_raw, date, drive)
 
     compression = rosbag.Compression.NONE
 
-    save_path = os.path.join(args.path, "kitti_{}_synced".format(seq_to_drive[args.sequence]))
+    start_frame = int(seq_to_drive[args.sequence]['start'])
+    end_frame = int(seq_to_drive[args.sequence]['end'])
+
+
+    save_path = os.path.join(args.path, "kitti_{}_synced".format(seq_to_drive[args.sequence]['date']))
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
