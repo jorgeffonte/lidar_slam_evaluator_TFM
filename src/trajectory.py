@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -44,15 +45,56 @@ class Trajectory:
         for topic, msg, _ in bag.read_messages():
             poses = msg.poses
         for msg in poses:
+            # if  topic!="ground_truth_path" and topic!="ground_truth" and topic!="gt" and topic!="/ground_truth":
+            
+            #     angle = -2.727006 * math.pi / 180
+            
+            #     qx = math.cos(angle) * msg.pose.position.x - math.sin(angle) * msg.pose.position.y
+            #     qy = math.sin(angle) * msg.pose.position.x + math.cos(angle) * msg.pose.position.y
+            
+            #     traj.append([qx, qy, msg.pose.position.z])
+            # else:
+            #     traj.append([msg.pose.position.x, msg.pose.position.y, msg.pose.position.z])
             traj.append([msg.pose.position.x, msg.pose.position.y, msg.pose.position.z])
             rot.append(quat.Quaternion([msg.pose.orientation.x, msg.pose.orientation.y,
                                         msg.pose.orientation.z, msg.pose.orientation.w]))
-            time.append((msg.header.stamp - poses[0].header.stamp).to_nsec())
+            time.append((msg.header.stamp - poses[0].header.stamp).to_sec())
         return traj, rot, topic, time, len(poses)
 
     def pose_matrix(self, index):
         return np.vstack([np.hstack([self.orientation[index].rotation(), self.trajectory[index].reshape(3, 1)]),
                           np.array([0, 0, 0, 1])])
+
+def plotXYZT(gt, trajs,times_list):
+    plt.figure(figsize=(6, 10))
+    plt.subplot(4, 1, 1)
+    for traj in trajs:
+        plt.plot(traj.time, traj.trajectory[:, 0], label=traj.name)
+    if gt: plt.plot(gt.time, gt.trajectory[:, 0], label=gt.name, ls='--')
+    plt.ylabel('x[m]')
+    plt.legend()
+
+    plt.subplot(4, 1, 2)
+    for traj in trajs:
+        plt.plot(traj.time, traj.trajectory[:, 1], label=traj.name)
+    if gt: plt.plot(gt.time, gt.trajectory[:, 1], label=gt.name, ls='--')
+    plt.ylabel('y[m]')
+    plt.legend()
+
+    plt.subplot(4, 1, 3)
+    for traj in trajs:
+        plt.plot(traj.time, traj.trajectory[:, 2], label=traj.name)
+    if gt: plt.plot(gt.time, gt.trajectory[:, 2], label=gt.name, ls='--')
+    plt.ylabel('z[m]')
+    plt.xlabel('time[sec]')
+    plt.legend()
+    
+    plt.subplot(4, 1, 4)
+    for times in times_list:
+        plt.plot(times.pub_time_list, times.comp_time_list)
+    plt.ylabel('Computation time[ms]')
+    plt.xlabel('time[sec]')
+    plt.legend()
 
 def plotXYZ(gt, trajs):
     plt.figure(figsize=(6, 10))
@@ -75,7 +117,7 @@ def plotXYZ(gt, trajs):
         plt.plot(traj.time, traj.trajectory[:, 2], label=traj.name)
     if gt: plt.plot(gt.time, gt.trajectory[:, 2], label=gt.name, ls='--')
     plt.ylabel('z[m]')
-    plt.xlabel('time[nano_sec]')
+    plt.xlabel('time[sec]')
     plt.legend()
 
 

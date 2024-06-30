@@ -312,6 +312,7 @@ if __name__ == "__main__":
         util = pykitti.utils.read_calib_file(os.path.join(kitti_raw.calib_path, 'calib_cam_to_cam.txt'))
 
         # Export
+        save_imu_data(bag, kitti_raw, imu_frame_id, imu_topic)
         save_imu_data_raw(bag, kitti_raw, imu_frame_id, imu_raw_topic)
         save_gps_fix_data(bag, kitti_raw, imu_frame_id, gps_fix_topic)
         save_gps_vel_data(bag, kitti_raw, imu_frame_id, gps_vel_topic)

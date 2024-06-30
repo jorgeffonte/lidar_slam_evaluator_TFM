@@ -1,6 +1,8 @@
 import rosbag
 import tf
 import numpy as np
+import sys
+import os
 
 def quaternion_to_transformation_matrix(orientation, position):
     """Convert quaternion and position to a full 4x4 transformation matrix."""
@@ -34,9 +36,13 @@ def count_lines(filename):
     return line_count
 
 
-def process_bag_file(seq):
-    bag_file = f"/home/dronomy/TFM_ws/kitti_data/odom/dataset/sequences/{str(seq).zfill(2)}/kiss_icp_path.bag"
-    out_path=f'/home/dronomy/TFM_ws/kitti_data/odom/dataset/results/sha/data/{str(seq).zfill(2)}.txt'
+def process_bag_file(seq,algorithm="kiss_icp"):
+    bag_file = f"/home/dronomy/TFM_ws/kitti_data/odom/dataset/sequences/{str(seq).zfill(2)}/{algorithm}_path.bag"
+    base_path = f"/home/dronomy/TFM_ws/kitti_data/odom/dataset/sequences/{str(seq).zfill(2)}/compare_ros"
+    subdirs = [x[0] for x in os.walk(base_path)]
+    subfolder = subdirs[1]  # Assuming there is only one subfolder
+    bag_file = f"{subfolder}/{algorithm}_path.bag"
+    out_path=f'/home/dronomy/TFM_ws/kitti_data/odom/dataset/results/{algorithm}/data/{str(seq).zfill(2)}.txt'
     gt_path=f'/home/dronomy/TFM_ws/kitti_data/odom/dataset/poses/{str(seq).zfill(2)}.txt'
     number_of_lines = count_lines(gt_path)
     """Process a ROS bag file to extract path transformations and save in KITTI format."""
@@ -44,9 +50,17 @@ def process_bag_file(seq):
     laser_to_camera_transform_inv = np.linalg.inv(laser_to_camera_transform)
     bag = rosbag.Bag(bag_file, 'r')
     i=0
+    # Check if the directory of out_path exists, if not, create it
+    out_dir = os.path.dirname(out_path)
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
     with open(out_path, 'w') as f:
         for _, msg, _ in bag.read_messages():
-            pose_stamped = msg.poses[-1]
+            poses = msg.poses
+            
+            
+        for pose in poses:
+            pose_stamped = pose
             pose_matrix = quaternion_to_transformation_matrix(
                     pose_stamped.pose.orientation, pose_stamped.pose.position)
             # Transform to camera coordinate system and re-reference
@@ -69,16 +83,33 @@ def process_bag_file(seq):
                 break
         while i< number_of_lines:
             f.write(formatted_matrix + '\n')
+            print('while i< number_of_lines:',i)
             i+=1
     bag.close()
 
+# Check if the correct number of arguments is provided
+if len(sys.argv) < 2:
+    print("Usage: python bag2kittiformat2.py  <algorithm>")
+    print("Usage: python bag2kittiformat2.py  <algorithm> <sequence_number>")
+    sys.exit(1)
+elif len(sys.argv) > 3:
+    print("Usage: python bag2kittiformat2.py  <algorithm>")
+    print("Usage: python bag2kittiformat2.py  <algorithm> <sequence_number>")
+    sys.exit(1)
+    
+    
+    
+
+# Get the sequence number and algorithm from the command line arguments
+algorithm = sys.argv[1]
+
 # Use the function
-process_bag_file(8)
-# process_bag_file(1)
-# process_bag_file(2)
-# process_bag_file(4)
-# process_bag_file(5)
-# process_bag_file(6)
-# process_bag_file(7)
-# process_bag_file(9)
+if len(sys.argv) == 2:
+    for i in range(1,11):
+        if i==3:
+            continue
+        process_bag_file(i, algorithm)
+else:
+    process_bag_file(int(sys.argv[2]), algorithm)
+            
 

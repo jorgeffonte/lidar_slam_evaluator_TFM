@@ -36,6 +36,7 @@ parser = argparse.ArgumentParser(description="Lidar SLAM Evaluator")
 parser.add_argument('--dataset', nargs="+", dest='dataset', help='SLAM algorithms that want to compare: kitti, nclt')
 parser.add_argument('--slam', nargs="+", dest='slam_packages', help='SLAM algorithms that want to compare: aloam, lego_loam, lio_sam')
 parser.add_argument('--bag_path', dest='bagfile_path', help='Directory path where KITTI dataset bag file "kitti.bag" exists')
+parser.add_argument('--convert_kitti', dest='convert_kitti_arg', help='If you want to convert bag to kitti txt file, add --convert_kitti <seq number>')
 parser.add_argument('--plot', dest='plot_arg', choices=['all', 'traj', 'error', 'stat'], default='all', help='Plot options: all, traj, error, stat')
 parser.add_argument('--no_play', dest='play_flag', action='store_false', help='If you already have recorded result bag file, add --no_play')
 args = parser.parse_args()
@@ -48,7 +49,7 @@ if args.slam_packages is None:
 	args.slam_packages = ["aloam", "lego_loam", "lio_sam", "kiss_icp"]
 
 if 'all' in args.slam_packages:
-    args.slam_packages = ["aloam", "lego_loam", "lio_sam", "kiss_icp"]
+    args.slam_packages = ["faster_lio", "fast_lio", "dlo", "kiss_icp","f_loam"]
 
 for slam in args.slam_packages:
     if slam not in packages_list:
@@ -56,15 +57,18 @@ for slam in args.slam_packages:
 
 if args.bagfile_path is None:
 	raise parser.error("Please set bag file directory with --bag_path parser")
+# if args.convert_kitti_arg is None:
+# 	raise parser.error("Please set seq number --convert_kitti_arg 07")
 
 class CompareSLAM():
-    def __init__(self, slam_packages, bag_path, plot_arg):
+    def __init__(self, slam_packages, bag_path, plot_arg,convert_kitti_arg):
         self.slam_packages = slam_packages
         self.bag_path = bag_path
         self.bag_file = bag_path + '/'+args.dataset[0]+'.bag'
         bag_info_dict = yaml.safe_load(Bag(self.bag_file, 'r')._get_yaml_info())
         self.bag_duration = bag_info_dict['duration']
         self.plot_arg = plot_arg
+        self.convert_kitti_arg = convert_kitti_arg
         self.file_list = []
         self.file_list_time = []
         print(args.dataset)
@@ -90,7 +94,7 @@ class CompareSLAM():
                     subprocess.run(f"timeout {str(self.bag_duration)} rostopic echo -p --nostr --noarr {odom_t} > {str(self.bag_path)}/result/{slam}_predict_odom.csv", shell=True)
                     first = False
                 current_time = time.time()
-                if current_time - start_time >= self.bag_duration:
+                if current_time - start_time >= self.bag_duration+5:
                     print("finishing %s ..."% slam)
                     p1.terminate()
                     p1.wait()
@@ -104,6 +108,11 @@ class CompareSLAM():
             eng = matlab.engine.start_matlab()
             eng.run("/home/dronomy/TFM_ws/NTU_data/viral_eval/evaluate_all.m", nargout=0)
             return
+        if self.convert_kitti_arg and args.dataset[0]=="kitti":
+            for slam in self.slam_packages:
+                print("Converting %s algorithm bag to KITTI dataset format..." % slam)
+                p2 = Popen(["python3","bag2kittiformat2.py", slam,self.convert_kitti_arg ])
+                p2.wait()
         plot_arg = self.plot_arg
         file_list = self.file_list
         gt, tj_list = self.traj_process(file_list)
@@ -151,10 +160,15 @@ class CompareSLAM():
         tj.plot3D(gt, tj_list)
         return plt.show()
 
+    def plot_xyzt(self, gt, tj_list, time_list):
+        print("plotting...")
+        tj.plotXYZT(gt, tj_list,time_list)
+        return plt.show()
     def plot_error(self, plot_arg, gt, tj_list, error_list,comp_list):
         print("plotting...")
         if (plot_arg == 'all'):
             tj.plotXYZ(gt, tj_list)
+            tj.plotXYZT(gt, tj_list,comp_list)
             tj.plot2D('xy', gt, tj_list)
             tj.plot3D(gt, tj_list)
         
@@ -183,13 +197,14 @@ class CompareSLAM():
         ws = wb.active
         
         # Añadir el título de APE[m] con celdas combinadas
-        ws.append(['name', 'APE[m]', '', '', '', '', '','RPE[m]', '', '', '', '', '', 'ave_comp[ms]','seq length[s]'])
+        ws.append(['name', 'APE[m]', '', '', '', '', '','RPE[m]', '', '', '', '', '','RPE[rad]', '', '', '', '', '', 'ave_comp[ms]','seq length[s]'])
         ws.merge_cells(start_row=1, start_column=2, end_row=1, end_column=7)
         ws.merge_cells(start_row=1, start_column=8, end_row=1, end_column=13)
+        ws.merge_cells(start_row=1, start_column=14, end_row=1, end_column=19)
 
         # Añadir los encabezados para los datos de APE
         headers = ['mean', 'std', 'median', 'minimum', 'maximum', 'rmse']
-        ws.append([' ']+headers+headers)
+        ws.append([' ']+headers+headers+headers)
         for error, comp_time in zip(error_list, comp_list):
     
             print(error.name)
@@ -203,7 +218,7 @@ class CompareSLAM():
             # 'RPE[rad]': error.rpe_rot_stat[0]
             # })
             comp_time.comp_time_list.mean
-            ws.append([error.name]+error.ape_tans_stat[:]+error.rpe_tans_stat[:]+[comp_time.comp_time_list.mean()]+[self.bag_duration])
+            ws.append([error.name]+error.ape_tans_stat[:]+error.rpe_tans_stat[:]+error.rpe_rot_stat[:]+[comp_time.comp_time_list.mean()]+[self.bag_duration])
         
         # Puedes hacer algo similar para RPE si lo necesitas
         from openpyxl.styles import Alignment   
@@ -229,7 +244,7 @@ class CompareSLAM():
         wb.save(nombre_archivo)
        
 if __name__ == '__main__':
-    compare = CompareSLAM(args.slam_packages, args.bagfile_path, args.plot_arg)
+    compare = CompareSLAM(args.slam_packages, args.bagfile_path, args.plot_arg, args.convert_kitti_arg)
     if args.play_flag:
         compare.play_algorithm()
     else:
