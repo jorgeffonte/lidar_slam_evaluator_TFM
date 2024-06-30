@@ -7,11 +7,13 @@ import heapq
 import sys
 import math
 
-def find_pairs_and_publish(navsatfix_msgs, pose_pub, path, time_tolerance=0.1):
+def find_pairs_and_publish(navsatfix_msgs, navrelposned_msgs,pose_pub, path, time_tolerance=0.1):
     tolerance = rospy.Duration.from_sec(time_tolerance)
     bag = rosbag.Bag(path + 'autopia_gt.bag', 'w')
 
     fix_heap = []
+    ned_heap = []
+
     gt_path = Path()
     gt_path.header.frame_id = '/map'
     origin = None
@@ -52,10 +54,13 @@ def process_rosbag(path, name):
     bag = rosbag.Bag(path + name)
     pose_pub = rospy.Publisher('path', PoseStamped, queue_size=10)
     navsatfix_msgs = []
-
-    for topic, msg, t in bag.read_messages(topics=['/ublox/fix']):
-        navsatfix_msgs.append((msg, msg.header.stamp))
-    find_pairs_and_publish(navsatfix_msgs, pose_pub, path)
+    navrelposned9_msgs = []
+    for topic, msg, t in bag.read_messages(topics=['/ublox/fix','/ublox/navrelposned']):
+        if topic == '/ublox/fix':
+            navsatfix_msgs.append((msg, msg.header.stamp))
+        else:
+            navrelposned9_msgs.append((msg, msg.header.stamp))  
+    find_pairs_and_publish(navsatfix_msgs,navrelposned9_msgs, pose_pub, path)
     bag.close()
 
 if __name__ == '__main__':

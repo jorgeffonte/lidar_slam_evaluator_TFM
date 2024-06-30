@@ -32,9 +32,10 @@ def find_pairs_and_publish(navsatfix_msgs, navrelposned9_msgs, pose_pub, time_to
 
         if abs(time_diff) <= tolerance:
             if origin is None:
-                # Establecer la primera posición recibida como el origen
-                origin = (fix_msg.latitude, fix_msg.longitude)
-                origin_altitude = fix_msg.altitude
+            # Establecer la primera posición recibida como el origen
+            origin = (fix_msg.latitude, fix_msg.longitude)
+            origin_altitude = fix_msg.altitude
+            initial_heading = ned_msg.heading * 1e-5  # Convertir de 1e-5 grados a grados
 
             # Calcular la posición relativa usando geodesic
             current_position = (fix_msg.latitude, fix_msg.longitude)
@@ -55,7 +56,7 @@ def find_pairs_and_publish(navsatfix_msgs, navrelposned9_msgs, pose_pub, time_to
 
             # Orientación del heading
             heading = ned_msg.heading * 1e-5  # Convertir de 1e-5 grados a grados
-            heading_rad = heading / 180.0 * math.pi  # Convertir a radianes
+            heading_rad = (heading - initial_heading) / 180.0 * math.pi  # Convertir a radianes
             pose_msg.pose.orientation = quaternion_from_euler(0, 0, heading_rad)
 
             pose_pub.publish(pose_msg)
