@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class Quaternion:
     def __init__(self, q):
         self.x = q[0]
@@ -26,22 +25,26 @@ class Quaternion:
 
         norm = self.norm()
         if norm == 0:
-            return Quaternion([self.x, self.y, self.z, self.w])
-
+            raise ValueError("Cannot raise a zero norm quaternion to a power.")
+        
         norm_v = np.sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2)
-        if 0.99 <= norm <= 1:
-            phi = np.arccos(self.w)
-            w = np.cos(power * phi)
-            x = np.sin(power * phi) * self.x / norm_v
-            y = np.sin(power * phi) * self.y / norm_v
-            z = np.sin(power * phi) * self.z / norm_v
+        if norm_v == 0:
+            x, y, z = 0, 0, 0
+            w = 1  # Se define w como 1 para mantener un cuaternión válido
         else:
-            mul = norm ** power
-            phi = np.arccos(self.w / norm)
-            w = mul * np.cos(power * phi)
-            x = mul * np.sin(power * phi) * self.x / norm_v
-            y = mul * np.sin(power * phi) * self.y / norm_v
-            z = mul * np.sin(power * phi) * self.z / norm_v
+            if 0.99 <= norm <= 1:
+                phi = np.arccos(self.w)
+                w = np.cos(power * phi)
+                x = np.sin(power * phi) * self.x / norm_v
+                y = np.sin(power * phi) * self.y / norm_v
+                z = np.sin(power * phi) * self.z / norm_v
+            else:
+                mul = norm ** power
+                phi = np.arccos(self.w / norm)
+                w = mul * np.cos(power * phi)
+                x = mul * np.sin(power * phi) * self.x / norm_v
+                y = mul * np.sin(power * phi) * self.y / norm_v
+                z = mul * np.sin(power * phi) * self.z / norm_v
         return Quaternion([x, y, z, w])
 
     def rotation(self):
