@@ -3,14 +3,14 @@
     <param name="/use_sim_time" value="true"/>
 
     <!-- Path of a rosbag file -->
-    <arg name="bag_path" default="$(find path_recorder)/../bag/kitti_2011_09_30_drive_0027_synced"/>
+    <arg name="bag_path" default="$(find path_recorder)/../bag/autopia_2011_09_30_drive_0027_synced"/>
    <!-- For Velodyne VLP-16 -->
    <!-- <param name="scan_line" value="16" />   -->
     
 
-   <!-- For Velodyne HDL-32 
-   <param name="scan_line" value="32" />
-   -->
+   <!-- For Velodyne HDL-32 -->
+   <!-- <param name="scan_line" value="32" /> -->
+   
 
    <!-- For Velodyne HDL-64 -->
    <param name="scan_line" value="64" />
@@ -22,17 +22,18 @@
     <param name="scan_period" value="0.1" />
 
     <param name="vertical_angle" type="double" value="2.0" />
-    <param name="map_resolution" type="double" value="0.5" />
-    <param name="max_dis" type="double" value="90.0" />
+    <param name="map_resolution" type="double" value="1" />
+    <param name="max_dis" type="double" value="100.0" />
     <param name="min_dis" type="double" value="3.0" />
     <!--- -->
     <node pkg="floam" type="floam_odom_estimation_node" name="floam_odom_estimation_node" output="screen"/>
     <node pkg="floam" type="floam_laser_processing_node" name="floam_laser_processing_node" output="screen"/>
-    <node pkg="floam" type="floam_laser_mapping_node" name="floam_laser_mapping_node" output="screen"/>
+    <!-- <node pkg="floam" type="floam_laser_mapping_node" name="floam_laser_mapping_node" output="screen"/> -->
     <node pkg="floam" name="path_floam" type="path_pub.py" output="screen"/>
 
         <node pkg="tf" type="static_transform_publisher" name="word2map_tf"  args="0 0 0 0 0 0 /world /map 10" />
         
+
         <!-- <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="trajectory_server_loam" ns="base_link" >
             <param name="/target_frame_name" value="world" />
             <param name="/source_frame_name" value="base_link" />
@@ -40,7 +41,7 @@
             <param name="/trajectory_publish_rate" value="10.0" />
         </node> -->
 
-    <arg name="rviz" default="true" />
+    <arg name="rviz" default="false" />
     <group if="$(arg rviz)">
         <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find floam)/rviz/floam_velodyne.rviz" />
     </group>
@@ -48,16 +49,15 @@
 
 
 	<!-- Remap point cloud topic -->
-	<!-- <remap from="points_raw" to="velodyne_points" /> -->
-    <node pkg="kiss_icp_kitti" type="kitti_helper_node" name="kitti_helper_node" output="screen"/>
+	<remap from="/rubyplus_points" to="velodyne_points" />
 
-	<!-- Play kitti rosbag file -->
-    <node pkg="rosbag" type="play" name="kitti" args="--clock $(arg bag_path)/kitti.bag" output="log" />
+	<!-- Play autopia rosbag file -->
+    <node pkg="rosbag" type="play" name="autopia" args="--clock -r 0.1 -s 0 $(arg bag_path)/autopia.bag" output="log" />
 
 	<!-- Launch path_recorder to save a trajectory from KISS-ICP -->
     <node pkg="path_recorder" type="path_recorder" name="kiss_recorder" output="screen">
         <param name="algorithm_name" type="string" value="f_loam" />
-        <param name="path_topic" type="string" value="/floam/path" />
+        <param name="path_topic" type="string" value="/Odometry" />
         <param name="save_to" type="string" value="$(arg bag_path)" />
     </node>
 </launch>

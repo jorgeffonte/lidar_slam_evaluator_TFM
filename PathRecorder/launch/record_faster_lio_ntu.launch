@@ -9,7 +9,7 @@
     
 
    <!-- For Velodyne HDL-32 -->
-   <param name="scan_line" value="32" />
+   <param name="scan_line" value="16" />
    
 
    <!-- For Velodyne HDL-64 -->
@@ -25,8 +25,8 @@
         <param name="feature_extract_enable" type="bool" value="0"/>
         <param name="point_filter_num_" type="int" value="4"/>
         <param name="max_iteration" type="int" value="3" />
-        <param name="filter_size_surf" type="double" value="0.5" />
-        <param name="filter_size_map" type="double" value="0.5" />
+        <param name="filter_size_surf" type="double" value="0.25" />
+        <param name="filter_size_map" type="double" value="0.25" />
         <param name="cube_side_length" type="double" value="1000" />
         <param name="runtime_pos_log_enable" type="bool" value="1" />
         <node pkg="faster_lio" type="run_mapping_online" name="laserMapping" output="screen" /> 
@@ -48,7 +48,7 @@
 	<!-- Launch path_recorder to save a trajectory from FASTER -->
     <node pkg="path_recorder" type="path_recorder" name="faster_recorder" output="screen">
         <param name="algorithm_name" type="string" value="faster_lio" />
-        <param name="path_topic" type="string" value="/path" />
+        <param name="path_topic" type="string" value="/Odometry" />
         <param name="save_to" type="string" value="$(arg bag_path)" />
     </node>
 </launch>

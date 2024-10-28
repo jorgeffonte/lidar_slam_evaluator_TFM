@@ -38,14 +38,14 @@
 
 
 	<!-- Remap point cloud topic -->
-	<remap from="points_raw" to="velodyne_points" />
+    <node pkg="kiss_icp_kitti" type="kitti_helper_node" name="kitti_helper_node" output="screen"/>
 	<!-- Play nclt rosbag file -->
     <node pkg="rosbag" type="play" name="nclt" args="--clock $(arg bag_path)/kitti.bag " output="log" />
 
 	<!-- Launch path_recorder to save a trajectory from KISS-ICP -->
-    <node pkg="path_recorder" type="path_recorder" name="kiss_recorder" output="screen">
+    <!-- <node pkg="path_recorder" type="path_recorder" name="kiss_recorder" output="screen">
         <param name="algorithm_name" type="string" value="faster_lio" />
         <param name="path_topic" type="string" value="/path" />
         <param name="save_to" type="string" value="$(arg bag_path)" />
-    </node>
+    </node> -->
 </launch>

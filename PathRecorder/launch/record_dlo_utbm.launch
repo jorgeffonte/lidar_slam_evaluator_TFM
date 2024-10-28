@@ -11,8 +11,8 @@
     <arg name="robot_namespace" default="robot"/>
     <arg name="rviz" default="true"/>
 
-    <arg name="pointcloud_topic" default="/velodyne_points"/>
-    <arg name="imu_topic" default="imu"/>
+    <arg name="pointcloud_topic" default="/hdl32e_left/velodyne_points"/>
+    <arg name="imu_topic" default="/imu/data"/>
 
     <!-- Run DLO -->
     <group>
@@ -20,8 +20,8 @@
         <node ns="$(arg robot_namespace)" name="dlo_odom" pkg="direct_lidar_odometry" type="dlo_odom_node" output="screen" clear_params="true">
 
             <!-- Load parameters -->
-            <rosparam file="$(find direct_lidar_odometry)/cfg/dlo.yaml" command="load"/>
-            <rosparam file="$(find direct_lidar_odometry)/cfg/params.yaml" command="load"/>
+            <rosparam file="$(find direct_lidar_odometry)/cfg/dlo_utbm.yaml" command="load"/>
+            <rosparam file="$(find direct_lidar_odometry)/cfg/params_utbm.yaml" command="load"/>
 
             <!-- Subscriptions -->
             <remap from="~pointcloud" to="$(arg pointcloud_topic)"/>
@@ -38,13 +38,13 @@
         <node ns="$(arg robot_namespace)" name="dlo_map" pkg="direct_lidar_odometry" type="dlo_map_node" output="screen" clear_params="true">
 
             <!-- Load parameters -->
-            <rosparam file="$(find direct_lidar_odometry)/cfg/dlo.yaml" command="load"/>
+            <rosparam file="$(find direct_lidar_odometry)/cfg/dlo_utbm.yaml" command="load"/>
 
             <!-- Subscriptions -->
             <remap from="~keyframes" to="dlo/odom_node/pointcloud/keyframe"/>
 
             <!-- Publications -->
-            <remap from="~map" to="dlo/map_node/map"/>
+            <!-- <remap from="~map" to="dlo/map_node/map"/> -->
 
         </node>
         <node pkg="direct_lidar_odometry" name="path_dlo" type="path_pub.py" output="screen"/>
@@ -55,16 +55,18 @@
         </group>
     </group>
 
+    <node pkg="tf" type="static_transform_publisher" name="pepe" args="0 0 0 0 0 0 robot/base_link base_link 100"/>
+    <node pkg="tf" type="static_transform_publisher" name="pe2pe" args="0 0 0 0 0 0 robot/odom world 100"/>
 
 	<!-- Remap point cloud topic -->
-	<remap from="points_raw" to="velodyne_points" />
 	<!-- Play kitti rosbag file -->
-    <node pkg="rosbag" type="play" name="kitti" args="--clock $(arg bag_path)/kitti.bag" output="log" />
-
+    <include file="$(find utbm_robocar_dataset)/launch/utbm_dataset_play.launch">
+        <arg name="bag" value="$(arg bag_path)/utbm.bag"/>
+      </include>
 	<!-- Launch path_recorder to save a trajectory from KISS-ICP -->
     <node pkg="path_recorder" type="path_recorder" name="kiss_recorder" output="screen">
         <param name="algorithm_name" type="string" value="dlo" />
-        <param name="path_topic" type="string" value="/dlo/path" />
+        <param name="path_topic" type="string" value="/robot/Odometry" />
         <param name="save_to" type="string" value="$(arg bag_path)" />
     </node>
 </launch>

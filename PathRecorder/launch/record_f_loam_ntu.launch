@@ -3,17 +3,17 @@
     <param name="/use_sim_time" value="true"/>
 
     <!-- Path of a rosbag file -->
-    <arg name="bag_path" default="$(find path_recorder)/../bag/kitti_2011_09_30_drive_0027_synced"/>
+    <arg name="bag_path" default="$(find path_recorder)/../bag/ntu_2011_09_30_drive_0027_synced"/>
    <!-- For Velodyne VLP-16 -->
-   <!-- <param name="scan_line" value="16" />   -->
+   <param name="scan_line" value="16" />  
     
 
-   <!-- For Velodyne HDL-32 
-   <param name="scan_line" value="32" />
-   -->
+   <!-- For Velodyne HDL-32 -->
+   <!-- <param name="scan_line" value="32" /> -->
+   
 
    <!-- For Velodyne HDL-64 -->
-   <param name="scan_line" value="64" />
+   <!-- <param name="scan_line" value="64" /> -->
    
 
     <!-- Run Floam -->
@@ -23,7 +23,7 @@
 
     <param name="vertical_angle" type="double" value="2.0" />
     <param name="map_resolution" type="double" value="0.5" />
-    <param name="max_dis" type="double" value="90.0" />
+    <param name="max_dis" type="double" value="20.0" />
     <param name="min_dis" type="double" value="3.0" />
     <!--- -->
     <node pkg="floam" type="floam_odom_estimation_node" name="floam_odom_estimation_node" output="screen"/>
@@ -33,6 +33,8 @@
 
         <node pkg="tf" type="static_transform_publisher" name="word2map_tf"  args="0 0 0 0 0 0 /world /map 10" />
         
+        <node pkg="tf2_ros" type="static_transform_publisher"
+        name="world_vio_init_pub" args="0 0 0 1 0 0 0 world slam_init" />  
         <!-- <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="trajectory_server_loam" ns="base_link" >
             <param name="/target_frame_name" value="world" />
             <param name="/source_frame_name" value="base_link" />
@@ -48,11 +50,10 @@
 
 
 	<!-- Remap point cloud topic -->
-	<!-- <remap from="points_raw" to="velodyne_points" /> -->
-    <node pkg="kiss_icp_kitti" type="kitti_helper_node" name="kitti_helper_node" output="screen"/>
+	<remap from="/os1_cloud_node1/points" to="velodyne_points" />
 
-	<!-- Play kitti rosbag file -->
-    <node pkg="rosbag" type="play" name="kitti" args="--clock $(arg bag_path)/kitti.bag" output="log" />
+	<!-- Play ntu rosbag file -->
+    <node pkg="rosbag" type="play" name="ntu" args="--clock -r 1 -s 0 $(arg bag_path)/ntu.bag" output="log" />
 
 	<!-- Launch path_recorder to save a trajectory from KISS-ICP -->
     <node pkg="path_recorder" type="path_recorder" name="kiss_recorder" output="screen">

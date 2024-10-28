@@ -3,7 +3,7 @@
     <param name="/use_sim_time" value="true"/>
     
     <!-- Path of a rosbag file -->
-    <arg name="bag_path" default="$(find path_recorder)/../bag/kitti_2011_09_30_drive_0027_synced"/>
+    <arg name="bag_path" default="$(find path_recorder)/../bag/autopia_2011_09_30_drive_0027_synced"/>
     <!-- ROS paramaters -->
     <arg name="visualize" default="false"/>
     <arg name="odom_frame" default="odom"/>
@@ -13,10 +13,10 @@
     <arg name="record" default="false"/>
 
     <!-- KISS-ICP paramaters -->
-    <arg name="deskew" default="false"/>
+    <arg name="deskew" default="true"/>
     <arg name="max_range" default="60.0" />
     <arg name="min_range" default="1.0" />
-    <arg name="voxel_size" default="1.5" />
+    <arg name="voxel_size" default="1.0" />
     <!-- KITTI Helper, hack to fake KITTI is a rosbag dataset -->
     <!-- Run KISS-ICP --> 
     <group>
@@ -48,18 +48,13 @@
 
 	<!-- Remap point cloud topic -->
 	<remap from="rubyplus_points" to="velodyne_points" />
-	<!-- Play kitti rosbag file -->
-    <node pkg="rosbag" type="play" name="kitti" args="--clock -r 1  $(arg bag_path)/autopia.bag" output="log" />
-    <node name="fix_translator" pkg="gps_common" type="fix_translator">
-        <!-- Translate from NavSatFix to GPSFix //-->
-          <remap from="/navsat_fix_in"  to="//simpleRTK2B/ublox_gps_node/fix"/>
-          <remap from="/gps_fix_out"    to="/YOUR_GPSFIX_TOPIC"/>
-      </node>
+	<!-- Play autopia rosbag file -->
+    <node pkg="rosbag" type="play" name="autopia" args="--clock -r 0.1 $(arg bag_path)/autopia.bag" output="log" />
       
 	<!-- Launch path_recorder to save a trajectory from KISS-ICP -->	
     <node pkg="path_recorder" type="path_recorder" name="kiss_recorder" output="screen">
         <param name="algorithm_name" type="string" value="kiss_icp" />
-        <param name="path_topic" type="string" value="/kiss/trajectory" />
+        <param name="path_topic" type="string" value="/Odometry" />
         <param name="save_to" type="string" value="$(arg bag_path)" />
     </node>
 </launch>

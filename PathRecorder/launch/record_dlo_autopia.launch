@@ -3,7 +3,7 @@
     <param name="/use_sim_time" value="true"/>
 
     <!-- Path of a rosbag file -->
-    <arg name="bag_path" default="$(find path_recorder)/../bag/kitti_2011_09_30_drive_0027_synced"/>
+    <arg name="bag_path" default="$(find path_recorder)/../bag/autopia_2011_09_30_drive_0027_synced"/>
     <!-- ROS paramaters -->
 
 
@@ -12,7 +12,7 @@
     <arg name="rviz" default="true"/>
 
     <arg name="pointcloud_topic" default="/velodyne_points"/>
-    <arg name="imu_topic" default="/imu_raw"/>
+    <arg name="imu_topic" default="/imu/data"/>
 
     <!-- Run DLO -->
     <group>
@@ -28,7 +28,7 @@
             <remap from="~imu" to="$(arg imu_topic)"/>
 
             <!-- Publications -->
-            <remap from="~odom" to="dlo/odom_node/odom"/>
+            <remap from="~odom" to="Odometry"/>
             <remap from="~pose" to="dlo/odom_node/pose"/>
             <remap from="~kfs" to="dlo/odom_node/odom/keyframe"/>
             <remap from="~keyframe" to="dlo/odom_node/pointcloud/keyframe"/>
@@ -55,13 +55,13 @@
 
 	<!-- Remap point cloud topic -->
 	<remap from="rubyplus_points" to="velodyne_points" />
-	<!-- Play kitti rosbag file -->
-    <node pkg="rosbag" type="play" name="kitti" args="--clock  $(arg bag_path)/autopia.bag" output="log" />
+	<!-- Play autopia rosbag file -->
+    <node pkg="rosbag" type="play" name="autopia" args="--clock -r 0.1   $(arg bag_path)/autopia.bag" output="log" />
 
 	<!-- Launch path_recorder to save a trajectory from KISS-ICP -->
     <node pkg="path_recorder" type="path_recorder" name="kiss_recorder" output="screen">
         <param name="algorithm_name" type="string" value="dlo" />
-        <param name="path_topic" type="string" value="/dlo/path" />
+        <param name="path_topic" type="string" value="/robot/Odometry" />
         <param name="save_to" type="string" value="$(arg bag_path)" />
     </node>
 </launch>

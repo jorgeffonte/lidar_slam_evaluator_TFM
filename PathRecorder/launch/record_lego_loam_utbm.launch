@@ -17,12 +17,20 @@
 	    <node pkg="lego_loam" type="mapOptmization"     name="mapOptmization"     output="screen"/>
 	    <node pkg="lego_loam" type="transformFusion"    name="transformFusion"    output="screen"/>
     </group>
-
+    <group ns="hdl32e_left">
+        <node pkg="nodelet" type="nodelet" name="velodyne_left_nodelet_manager" args="manager" output="screen"/>
+        <node pkg="nodelet" type="nodelet" name="cloud_nodelet" args="load velodyne_pointcloud/TransformNodelet velodyne_left_nodelet_manager" output="screen">
+          <param name="calibration" value="$(find velodyne_pointcloud)/params/32db.yaml"/>
+          <param name="min_range" value="0.4"/>
+          <param name="max_range" value="130.0"/>
+          <param name="view_direction" value="3.1415926"/>
+          <param name="view_width" value="5.4769"/>
+        </node>
+      </group>
     <!-- Remap point cloud and imu topic -->
-	<remap from="points_raw" to="velodyne_points" />
-	<remap from="imu_correct" to="imu/data" />
+	<!-- <remap from="/hdl32e_left/velodyne_points" to="velodyne_points" /> -->
     <!-- Play kitti rosbag file -->
-    <node pkg="rosbag" type="play" name="kitti" args="--clock $(arg bag_path)/kitti.bag" output="log" />
+    <node pkg="rosbag" type="play" name="kitti" args="--clock $(arg bag_path)/utbm.bag" output="log" />
 
 	<!-- Launch path_recorder to save a trajectory from LeGO-LOAM -->	
     <node pkg="path_recorder" type="path_recorder" name="lego_loam_recorder" output="screen">

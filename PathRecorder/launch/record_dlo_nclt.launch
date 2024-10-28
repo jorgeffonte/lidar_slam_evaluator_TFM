@@ -28,7 +28,7 @@
             <remap from="~imu" to="$(arg imu_topic)"/>
 
             <!-- Publications -->
-            <remap from="~odom" to="dlo/odom_node/odom"/>
+            <remap from="~odom" to="Odometry"/>
             <remap from="~pose" to="dlo/odom_node/pose"/>
             <remap from="~kfs" to="dlo/odom_node/odom/keyframe"/>
             <remap from="~keyframe" to="dlo/odom_node/pointcloud/keyframe"/>

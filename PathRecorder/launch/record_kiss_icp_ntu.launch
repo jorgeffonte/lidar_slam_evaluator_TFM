@@ -3,7 +3,7 @@
     <param name="/use_sim_time" value="true"/>
     
     <!-- Path of a rosbag file -->
-    <arg name="bag_path" default="$(find path_recorder)/../bag/nclt_2011_09_30_drive_0027_synced"/>
+    <arg name="bag_path" default="/home/dronomy/TFM_ws/NTU_data/eee_02"/>
     <!-- ROS paramaters -->
     <arg name="visualize" default="true"/>
     <arg name="odom_frame" default="odom"/>
@@ -15,8 +15,8 @@
     <!-- KISS-ICP paramaters -->
     <arg name="deskew" default="true"/>
     <arg name="max_range" default="100.0" />
-    <arg name="min_range" default="1.0" />
-    <arg name="voxel_size" default="0.5" />
+    <arg name="min_range" default="2.0" />
+    <arg name="voxel_size" default="0.5 " />
     <!-- Odometry node -->
   
     <!-- Run KISS-ICP --> 
@@ -34,8 +34,8 @@
             <param name="deskew" value="$(arg deskew)"/>
             <param name="voxel_size" value="$(arg voxel_size)"/>
             <param name="max_points_per_voxel" value="20"/>
-            <param name="initial_threshold" value="2.0"/>
-            <param name="min_motion_th" value="0.01" />
+            <param name="initial_threshold" value="2"/>
+            <param name="min_motion_th" value="0.1" />
         </node>
         
         <arg name="rviz" default="true" />
@@ -50,8 +50,8 @@
     </group>
 
 
-	<!-- Play nclt rosbag file -->
-    <node pkg="rosbag" type="play" name="nclt" args="--clock $(arg bag_path)/ntu.bag " output="log" />
+    <!-- Play nclt rosbag file -->
+    <node pkg="rosbag" type="play" name="ntu" args="--clock -r 1 -s 0 $(arg bag_path)/ntu.bag " output="log" />
 
 	<!-- Launch path_recorder to save a trajectory from KISS-ICP -->	
     <node pkg="path_recorder" type="path_recorder" name="kiss_recorder" output="screen">

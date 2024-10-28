@@ -1,0 +1,66 @@
+<launch>
+    <!-- Set use_sim_time true to generate trajectory bag file in same time domain -->
+    <param name="/use_sim_time" value="true"/>
+
+    <!-- Path of a rosbag file -->
+    <arg name="bag_path" default="$(find path_recorder)/../bag/nclt_2011_09_30_drive_0027_synced"/>
+    <!-- ROS paramaters -->
+
+
+    <arg name="robot_namespace" default="robot"/>
+    <arg name="rviz" default="true"/>
+
+    <arg name="pointcloud_topic" default="/hdl32e_left/velodyne_points"/>
+    <arg name="imu_topic" default="/imu/data"/>
+
+
+    <!-- DLIO Odometry Node -->
+    <node ns="$(arg robot_namespace)" name="dlio_odom" pkg="direct_lidar_inertial_odometry" type="dlio_odom_node" output="screen" clear_params="true">
+
+        <!-- Load parameters -->
+        <rosparam file="$(find direct_lidar_inertial_odometry)/cfg/dlio_utbm.yaml" command="load"/>
+        <rosparam file="$(find direct_lidar_inertial_odometry)/cfg/params_utbm.yaml" command="load"/>
+
+        <!-- Subscriptions -->
+        <remap from="~pointcloud" to="$(arg pointcloud_topic)"/>
+        <remap from="~imu" to="$(arg imu_topic)"/>
+
+        <!-- Publications -->
+        <remap from="~odom"     to="Odometry"/>
+        <remap from="~pose"     to="dlio/odom_node/pose"/>
+        <remap from="~path"     to="dlio/odom_node/path"/>
+        <remap from="~kf_pose"  to="dlio/odom_node/keyframes"/>
+        <remap from="~kf_cloud" to="dlio/odom_node/pointcloud/keyframe"/>
+        <remap from="~deskewed" to="dlio/odom_node/pointcloud/deskewed"/>
+
+    </node>
+
+    <!-- DLIO Mapping Node -->
+    <!-- <node ns="$(arg robot_namespace)" name="dlio_map" pkg="direct_lidar_inertial_odometry" type="dlio_map_node" output="screen" clear_params="true">
+
+        <rosparam file="$(find direct_lidar_inertial_odometry)/cfg/dlio_utbm.yaml" command="load"/>
+        <rosparam file="$(find direct_lidar_inertial_odometry)/cfg/params_utbm.yaml" command="load"/>
+
+        <remap from="~keyframes" to="dlio/odom_node/pointcloud/keyframe"/>
+
+        <remap from="~map" to="dlio/map_node/map"/>
+
+    </node> -->
+
+   <!-- Remap point cloud topic -->
+	<!-- Play kitti rosbag file -->
+    <include file="$(find utbm_robocar_dataset)/launch/utbm_dataset_play.launch">
+        <arg name="bag" value="$(arg bag_path)/utbm.bag"/>
+      </include>
+    <node pkg="tf2_ros" type="static_transform_publisher"
+    name="world_vio_init_pub" args="0 0 0 1 0 0 0 world robot/odom" />
+    <group if="$(arg rviz)">
+        <node pkg="rviz" type="rviz" name="dlio_rviz" args="-d $(find direct_lidar_inertial_odometry)/launch/dlio.rviz" if="$(arg rviz)"/>
+    </group>
+	<!-- Launch path_recorder to save a trajectory from KISS-ICP -->
+    <node pkg="path_recorder" type="path_recorder" name="dlio_recorder" output="screen">
+        <param name="algorithm_name" type="string" value="dlio" />
+        <param name="path_topic" type="string" value="/robot/Odometry" />
+        <param name="save_to" type="string" value="$(arg bag_path)" />
+    </node>
+</launch>

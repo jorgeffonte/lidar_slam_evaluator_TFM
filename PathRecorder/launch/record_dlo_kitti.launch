@@ -28,7 +28,7 @@
             <remap from="~imu" to="$(arg imu_topic)"/>
 
             <!-- Publications -->
-            <remap from="~odom" to="dlo/odom_node/odom"/>
+            <remap from="~odom" to="Odometry"/>
             <remap from="~pose" to="dlo/odom_node/pose"/>
             <remap from="~kfs" to="dlo/odom_node/odom/keyframe"/>
             <remap from="~keyframe" to="dlo/odom_node/pointcloud/keyframe"/>
@@ -57,8 +57,10 @@
 
 
 	<!-- Remap point cloud topic -->
+    <node pkg="kiss_icp_kitti" type="kitti_helper_node" name="kitti_helper_node" output="screen"/>
+
 	<remap from="points_raw" to="velodyne_points" />
-	<!-- Play kitti rosbag file -->
+    <!-- Play kitti rosbag file -->
     <node pkg="rosbag" type="play" name="kitti" args="--clock $(arg bag_path)/kitti.bag" output="log" />
 
 	<!-- Launch path_recorder to save a trajectory from KISS-ICP -->
